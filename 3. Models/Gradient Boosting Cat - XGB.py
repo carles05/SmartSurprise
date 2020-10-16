@@ -19,7 +19,7 @@ from pickle import dump
 # Define global variables and functions
 seed = 12345
 to_predict_cont = ['Surprise','earnings','Surprise_ratio']
-to_predict_cat = ['flag_surprise5','flag_surprise10','flag_surprise20','flag_surprise-5','flag_surprise-10','flag_surprise-20']   
+to_predict_cat = ['flag_surprise5','flag_surprise10','flag_surprise20','flag_surprise-5','flag_surprise-10','flag_surprise-20']
 to_predict_cat_1 = ['flag_surprise20','flag_surprise-20']
 to_drop = ['stock_difference']
 to_predict=to_predict_cat+to_predict_cont+to_drop
@@ -45,7 +45,7 @@ for sector in sectors:
     target=pd.read_sql_table('Cor_Target'+sector+'_Data_v1',con=engine)
     print('--- Finished reading data')
     df = pd.merge(fundamental, target, how ='left', on = ['symbol','Q','fillingDate'])
-    
+
     df['flag_surprise5']=np.where(df.Surprise_ratio> 0.05, 1, 0)
     df['flag_surprise10']=np.where(df.Surprise_ratio> 0.1, 1, 0)
     df['flag_surprise20']=np.where(df.Surprise_ratio> 0.2, 1, 0)
@@ -57,7 +57,7 @@ for sector in sectors:
         df=df.drop(columns=['earnings_date'])
     except:
         pass
-    
+
     for objective in to_predict_cat_1:
         # X and y split
         print('---- Starting with '+objective)
