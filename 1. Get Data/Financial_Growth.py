@@ -90,7 +90,6 @@ symbol_list_2=symbol_list_df[1000:10000]
 
 
 
-
 ticker_list=symbol_list_2["symbol"]
 #EMPEZAMOS EL BUCLE GLOBAL DONDE PARA CADA UNO DE LOS TICKERS HARÁ TODOS LOS CALCULOS
 for a in range(len(ticker_list)):
@@ -100,7 +99,7 @@ for a in range(len(ticker_list)):
     
     #DEFINE
     base_url = 'https://fmpcloud.io/api/v3/financial-growth//'
-    ticker_url=ticker_list.iloc[a] #empezar por 2094,
+    ticker_url=ticker_list.iloc[1] #empezar por 2094,
     end_url = '?period=quarter&apikey=27b5adb17295244f3695edd1c6605542'
     ticker_req = base_url + ticker_url+end_url
 
