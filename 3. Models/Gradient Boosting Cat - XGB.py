@@ -45,21 +45,22 @@ def read_data_sector(sector):
 def train_XGB(X_train,y_train):
     # StratifiedKFols for unbalanced classes
     kfold = StratifiedKFold(n_splits=5, random_state=seed, shuffle=True)
-    model = xgb.XGBClassifier()
-    param_grid = {"n_estimators" : [75,100], "max_depth" : [2,3],
-                  'objective':['binary:logistic'], 'learning_rate' : [0.1,0.3]}
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='precision', cv=kfold, n_jobs=-1,
+    xgbmodel = xgb.XGBClassifier()
+    param_grid = {"n_estimators" : [25,50,75,100], "max_depth" : [1,2,3],
+                  'objective':['binary:logistic'], 'learning_rate' : [0.1,0.2,0.3]}
+    grid = GridSearchCV(estimator=xgbmodel, param_grid=param_grid, scoring='roc_auc', cv=kfold, n_jobs=-1,
                         return_train_score = True)
     # Train Model
     print('---- Training model')
     grid_results = grid.fit(X_train,y_train)
     best_model = grid.best_estimator_
-    return best_model
+    return best_model, grid_results
         
 def test_score_XGB(model, X_test, y_test):
     y_pred = model.predict(X_test)
     score = precision_score(y_test, y_pred)
-    return score
+    perc = y_pred.sum()/y_test.sum()
+    return score, perc
 
 def clean_dataset(df):
     assert isinstance(df, pd.DataFrame), "df needs to be a pd.DataFrame"
@@ -86,26 +87,26 @@ results = pd.DataFrame()
 # Main
 for sector in sectors:
     sector_df = read_data_sector(sector)
-    for objective in to_predict_cat_1:
+    for objective in to_predict_cat:
+        print('--- Starting with '+objective)
         X = sector_df.drop(columns = to_predict)
         y = sector_df[objective]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2,
                                                             random_state=seed, shuffle=True,
                                                             stratify = y)
-        model = train_XGB(X_train,y_train)
-        #print(f'Grid Best Score {grid_results.best_score_:.7f}\n\
-        #Number of Trees {grid_results.best_params_["n_estimators"]:3d}\n\
-        #Max Depth of Decision Trees {grid_results.best_params_["max_depth"]:3d}\n\
-        #Learning Rate {grid_results.best_params_["learning_rate"]:.2f}')
+        model, grid_results = train_XGB(X_train,y_train)
+        test_score, perc_pred = test_score_XGB(model, X_test, y_test)
+        print(f'Grid Best Score {grid_results.best_score_:.7f}\n\
+        Number of Trees {grid_results.best_params_["n_estimators"]:3d}\n\
+        Max Depth of Decision Trees {grid_results.best_params_["max_depth"]:3d}\n\
+        Learning Rate {grid_results.best_params_["learning_rate"]:.2f}\n\
+        Precision Test {test_score :.5f}\n\
+        Percentage Predicted {perc_pred:.3f}')
         filename = 'model_'+sector+'_'+objective
         features = sorted(zip(model.feature_importances_, X_train.columns), reverse=True)[:10]
-        #results = results.append({'Model':filename,'Score':grid_results.best_score_,\
-         #                         'Best_params': grid_results.best_params_,\
-          #                       'Features':features}, ignore_index=True)
-        #dump(best_model, open(filename, "wb"))
-        precision = test_score_XGB(model, X_test, y_test)
-        
-    
-#results.to_excel(r'C:\Users\viveroc\Documents\SmartSurprise\SmartSurpriseRepo\results.xlsx')
+        results = results.append({'Model':filename,'Precision Test':test_score,\
+                                  'Best_params': grid_results.best_params_,\
+                                 'Features':features}, ignore_index=True)
+        dump(model, open(filename, "wb"))
 
-
+results.to_excel(r'C:\Users\viveroc\Documents\SmartSurprise\SmartSurpriseRepo\results.xlsx')
