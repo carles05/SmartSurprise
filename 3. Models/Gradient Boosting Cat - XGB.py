@@ -20,7 +20,7 @@ from pickle import dump
 seed = 12345
 to_predict_cont = ['Surprise','earnings','Surprise_ratio']
 to_predict_cat = ['flag_surprise5','flag_surprise10','flag_surprise20','flag_surprise-5','flag_surprise-10','flag_surprise-20']
-to_predict_cat_1 = ['flag_surprise20','flag_surprise-20']
+to_predict_cat_1 = ['flag_surprise20']
 to_drop = ['stock_difference']
 to_predict=to_predict_cat+to_predict_cont+to_drop
 
@@ -35,6 +35,7 @@ engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params,fast_executem
 connection = engine.connect()
 
 sectors = ['Healthcare','Industrials','Financial Services','Technology','Consumer Cyclical']
+sectors = ['Technology']
 results = pd.DataFrame()
 # Main
 for sector in sectors:
@@ -70,6 +71,7 @@ for sector in sectors:
         param_grid = {"n_estimators" : [10,25,50,75], "max_depth" : [1,2,3,4]}
         # eta: learning rate - default 0.3, lambda: L2 regularization, default 1, alpha: L1 regularization, default 0
         grid = GridSearchCV(estimator=model, param_grid=param_grid, scoring='accuracy', cv=kfold, n_jobs=-1)
+        # Change for precision
         # Train Model
         print('---- Training model')
         grid_results = grid.fit(X,y)
