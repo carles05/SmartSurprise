@@ -18,6 +18,7 @@ from pickle import dump
 from sklearn.model_selection import train_test_split
 from yellowbrick.classifier import ROCAUC
 from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 
 def read_data_sector(sector):
     print('-- Starting with '+sector)
@@ -59,8 +60,8 @@ def train_XGB(X_train,y_train):
 def test_score_XGB(model, X_test, y_test):
     y_pred = model.predict(X_test)
     score = precision_score(y_test, y_pred)
-    perc = y_pred.sum()/y_test.sum()
-    return score, perc
+    recall = recall_score(y_test, y_pred)
+    return score, recall
 
 def clean_dataset(df):
     assert isinstance(df, pd.DataFrame), "df needs to be a pd.DataFrame"
@@ -82,7 +83,7 @@ engine = create_engine("mssql+pyodbc:///?odbc_connect=%s" % params,fast_executem
 connection = engine.connect()
 
 #sectors = ['Healthcare','Industrials','Financial Services','Technology','Consumer Cyclical']
-sectors = ['Technology']
+sectors = ['Industrials']
 results = pd.DataFrame()
 # Main
 for sector in sectors:
@@ -95,17 +96,17 @@ for sector in sectors:
                                                             random_state=seed, shuffle=True,
                                                             stratify = y)
         model, grid_results = train_XGB(X_train,y_train)
-        test_score, perc_pred = test_score_XGB(model, X_test, y_test)
+        precision, recall = test_score_XGB(model, X_test, y_test)
         print(f'Grid Best Score {grid_results.best_score_:.7f}\n\
         Number of Trees {grid_results.best_params_["n_estimators"]:3d}\n\
         Max Depth of Decision Trees {grid_results.best_params_["max_depth"]:3d}\n\
         Learning Rate {grid_results.best_params_["learning_rate"]:.2f}\n\
-        Precision Test {test_score :.5f}\n\
-        Percentage Predicted {perc_pred:.3f}')
+        Precision Test {precision :.5f}\n\
+        Recall test {recall:.3f}')
         filename = 'model_'+sector+'_'+objective
         features = sorted(zip(model.feature_importances_, X_train.columns), reverse=True)[:10]
-        results = results.append({'Model':filename,'Precision Test':test_score,\
-                                  'Best_params': grid_results.best_params_,\
+        results = results.append({'Model':filename,'Precision Test':precision,\
+                                  'Recall Test':recall,'Best_params': grid_results.best_params_,\
                                  'Features':features}, ignore_index=True)
         dump(model, open(filename, "wb"))
 
