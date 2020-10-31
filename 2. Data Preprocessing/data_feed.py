@@ -26,11 +26,11 @@ sector_symbols = SP[SP['sector'].isin(sectors)].set_index('sector')
 dict_symbols = {}
 
 for sector in list(sectors):
-    if sector in ['Industrials', 'Real Estate', 'Technology', 'Utilities']:
+    if sector in ['Industrials']: #, 'Real Estate', 'Technology', 'Utilities'
         print('Loading '+sector)
         subset = list(sector_symbols.loc[sector]['symbol'])
         DM = DataMart_generator(subset)
         dict_symbols[sector] = DM.symbols
-        DM.upload_DataMart(sector,1)
+        DM.upload_DataMart(sector,2)
     
 ##############################################################################

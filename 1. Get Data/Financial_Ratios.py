@@ -5,7 +5,9 @@ import json
 import pandas as pd
 from datetime import date
 today = date.today()
-    
+
+#import ssl
+#ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def get_jsonparsed_data(url):
@@ -73,7 +75,7 @@ for i in range(n):
 
 
 #FILTRAMOS LO QUE YA HEMOS EXTRAIDO
-symbol_list_2=symbol_list_df[0:1000]
+symbol_list_2=symbol_list_df[20000:]
 
 
 
@@ -113,6 +115,6 @@ for a in range(len(ticker_list)):
             pass
     
     try:
-         financial_ratios_df.to_sql('ST_Financial_Ratios', con = engine, if_exists = 'append',index=False)
+         financial_ratios_df.to_sql('ST_Financial_Ratios2', con = engine, if_exists = 'append',index=False)
     except:
         pass

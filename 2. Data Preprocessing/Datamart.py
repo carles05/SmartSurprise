@@ -9,10 +9,10 @@ class DataMart_generator:
     def __init__(self,subset=False):
         
         #DataMart y Target a partir de tablas madre
-        self.data_tables=['ST_Balance_Sheet','ST_Marketcap','ST_Income_Statement',
-                      'ST_Cash_Flow','ST_Financial_Ratios','ST_Financial_Growth',
-                      'ST_Key_Metrcs','ST_Enterprise_Value','ST_Disc_Cash_Flow','ST_Earnings']
-        self.target_variables=['stock_difference','stock_difference_EMA2','earnings','Surprise','Surprise_ratio']
+        self.data_tables=['ST_Balance_Sheet2','ST_Marketcap2','ST_Income_Statement2',
+                      'ST_Cash_Flow2','ST_Financial_Ratios2','ST_Financial_Growth2',
+                      'ST_Key_Metrcs2','ST_Enterprise_Value2','ST_Earnings2','ST_Earning_Analysis2'] #'ST_Disc_Cash_Flow2' missing
+        self.target_variables=['stock_difference','stock_difference_EMA2','earnings','Surprise','Surprise_ratio','% 1p/6a']
         self.tables, self.engine = self.get_data(self.data_tables)
         # self.tables = T
         self.DataMart = pd.DataFrame()
@@ -34,13 +34,16 @@ class DataMart_generator:
                     df['fillingDate'] = pd.to_datetime(df['fillingDate'],errors='coerce')
                     df.drop(df['fillingDate'][df.fillingDate.isnull()].index,axis= 0,inplace=True)
                 else:
-                    if self.data_tables[i] == 'ST_Earnings':
+                    if self.data_tables[i] == 'ST_Earnings2':
                         df.rename(columns={'date':'earnings_date'},inplace=True)
                         df=pd.merge(self.DataMart.reset_index()[['symbol','Q','fillingDate']],df,on=['symbol'])
                         df['diff'] = df['fillingDate']-df['earnings_date']
                         df = df[df.groupby(['symbol','fillingDate'])['diff'].apply(lambda x: x == (x[x>=pd.Timedelta(days= -4)]).min())]
                         df = df[df['diff']<pd.Timedelta(days=90)]
                         df.drop('diff',axis=1,inplace=True)
+                    elif self.data_tables[i] == 'ST_Earning_Analysis2':
+                        df.rename(columns={'date':'dateX'},inplace=True)
+                        df=pd.merge(self.DataMart.reset_index()[['symbol','Q','fillingDate']],df,on=['symbol','Q'])
                     else:
                         df.rename(columns={'date':'Q'},inplace=True)
                         df=pd.merge(self.DataMart.reset_index()[['symbol','Q','fillingDate']],df,on=['symbol','Q'])
@@ -69,7 +72,7 @@ class DataMart_generator:
                     
                     #Formatting cols
                 for col in df.columns:
-                        df[col] = pd.to_numeric(df[col],errors='coerce')
+                    df[col] = pd.to_numeric(df[col],errors='coerce')
                     
                     #drop columns because of format
                 col_drop = []
@@ -102,9 +105,14 @@ class DataMart_generator:
                     self.DataMart = df
                     first = False
                 else:
-                    self.DataMart = pd.merge(self.DataMart, df, on=['symbol','Q','fillingDate'],how='left')
-                    max_dup = self.DataMart.index.value_counts().max()
-                    if max_dup > 1: print('Maximum duplicated indexes: '+ str(max_dup))
+                    if self.data_tables[i] == 'ST_Earning_Analysis2':
+                        df['% 1p/6a'] = round(df['close_earning_date_1p']/df['close_earning_date_6']-1,6)
+                        df = df[['symbol','Q','% incr. 6/30','% 1p/6a']]
+                        self.DataMart = pd.merge(self.DataMart, df, on=['symbol','Q','fillingDate'],how='left')
+                    else:
+                        self.DataMart = pd.merge(self.DataMart, df, on=['symbol','Q','fillingDate'],how='left')
+                        max_dup = self.DataMart.index.value_counts().max()
+                        if max_dup > 1: print('Maximum duplicated indexes: '+ str(max_dup))
                 self.DataMart.sort_index(ascending=False,inplace=True)
                 
                 print('Done')
@@ -251,9 +259,8 @@ class DataMart_generator:
 
                     for symbol in self.DataMart.reset_index()['symbol'].unique():
                         self.Target[t][(symbol, self.symbols[symbol]['int'][1], self.symbols[symbol]['int_filling'][1])] = np.NAN
-                    print(t + ' done')
-                    
-                elif t == 'Surprise':
+                    print(t + ' done')                    
+                elif (t == 'Surprise') | (t=='% 1p/6a'):
                     print(t + ' in progress')
                     self.Target[t] = self.DataMart[t].copy().shift(1)
                     self.DataMart.drop([t],inplace=True,axis=1)

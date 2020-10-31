@@ -50,7 +50,15 @@ def add_days(earnings_df_aux,day):
     return earnings_df_aux_30
 
 
-
+def define_q(date):
+    if date.month<4:
+        return pd.to_datetime(str(date.year-1)+'-12-31')
+    elif date.month<7:
+        return pd.to_datetime(str(date.year)+'-03-31')
+    elif date.month<10:
+        return pd.to_datetime(str(date.year)+'-06-30')
+    else:
+        return pd.to_datetime(str(date.year)+'-09-30')
 
 
 
@@ -96,7 +104,7 @@ earnings_df=pd.read_sql_table('ST_Earnings',con=engine)
 
 #FILTRAMOS LO QUE YA HEMOS EXTRAIDO
 
-symbol_list_2=symbol_list_df[5000:len(symbol_list_df)] 
+symbol_list_2=symbol_list_df[20000:] 
 
 ticker_list=symbol_list_2["symbol"]
 
@@ -297,7 +305,9 @@ for a in range(len(ticker_list)):
         results_df['% incr. close aft15/close aft earnings']=round((results_df['close_earning_date_15p']/results_df['close_earning_date_1p'])-1,6)
         results_df['% incr. close aft3/close aft earnings']=round((results_df['close_earning_date_3p']/results_df['close_earning_date_1p'])-1,6)
         results_df['symbol']=ticker_list.iloc[a]
-        results_df.to_sql('ST_Earning_Analysis', con = engine, if_exists = 'append',index=False)
+        results_df['Q'] = results_df.date.apply(define_q)
+        results_df.drop_duplicates(subset=['symbol','Q'],inplace=True)
+        results_df.to_sql('ST_Earning_Analysis2', con = engine, if_exists = 'append',index=False)
         
     except:
         pass
