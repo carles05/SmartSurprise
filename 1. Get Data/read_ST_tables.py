@@ -14,11 +14,23 @@ getTickerList
 tables = pd.DataFrame([{'name':'ST_Financial_Growth',
           'base_url':'https://fmpcloud.io/api/v3/financial-growth//'},
           {'name':'ST_Balance_Sheet',
-          'base_url':'https://fmpcloud.io/api/v3/balance-sheet-statement/'}])
+          'base_url':'https://fmpcloud.io/api/v3/balance-sheet-statement/'},
+          {'name':'ST_Cash_Flow',
+          'base_url':'https://fmpcloud.io/api/v3/cash-flow-statement/'},
+          {'name':'ST_Enterprise_Value',
+          'base_url':'https://fmpcloud.io/api/v3/enterprise-values/'},
+          {'name':'ST_Financial_Ratios',
+          'base_url':'https://fmpcloud.io/api/v3/ratios/'},
+          {'name':'ST_Income_Statement',
+          'base_url':'https://fmpcloud.io/api/v3/income-statement/'},
+          {'name':'ST_Marketcap',
+          'base_url':'https://fmpcloud.io/api/v3/historical-market-capitalization/'},
+          {'name':'ST_Key_Metrics',
+          'base_url':'https://fmpcloud.io/api/v3/key-metrics/'}])
 
 # GET SYMBOL LIST
-symbols = getTickerList()
-symbols = pd.DataFrame(symbols, columns = ['symbol'])
+#symbols = getTickerList()
+#symbols = pd.DataFrame(symbols, columns = ['symbol'])
 symbols = symbols.head(1) # just for testingc
 
 for index, table in tables.iterrows():
