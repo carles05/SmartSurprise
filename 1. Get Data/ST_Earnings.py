@@ -11,8 +11,8 @@ from BasicFunctions import createSQLConnection, dateToQuarter, readDataURL, \
 getTickerList
 
 # Declare table info
-table_name = 'ST_Marketcap'
-base_url = 'https://fmpcloud.io/api/v3/historical-market-capitalization/'
+table_name = 'ST_Earnings'
+base_url = 'https://fmpcloud.io/api/v3/historical/earning_calendar/'
 end_url = '?period=quarter&apikey=27b5adb17295244f3695edd1c6605542'
 
 # GET SYMBOL LIST
@@ -31,15 +31,11 @@ symbols['symbol_url'] = base_url+symbols['symbol']+end_url
 symbols[table_name] = symbols['symbol_url'].apply(readDataURL)
 
 # Construir un dataframe con todos los resultados
-final_table = pd.concat(list(symbols[table_name]),ignore_index=True)
-final_table.to_csv('~/Desktop/Carles/SmartSurprise/SavedData/marketcap.txt', index=False)
-
+final_table = pd.concat(list(symbols[table_name]))
+final_table.to_csv('~/Desktop/Carles/SmartSurprise/SavedData/earnings.txt', index=False)
 ## Convertir fecha a quarter
 ## Eliminar duplicados de quarters
 
 # Nos Conectamos a la BBDD y escribimos la tabla
 #connection = createSQLConnection()
 #financial_growth_df.to_sql('ST_Financial_Growth_v3', con = engine, if_exists = 'append',index=False)
-
-url = 'https://fmpcloud.io/api/v3/earnings-surpises/AAPL?period=quarter&apikey=27b5adb17295244f3695edd1c6605542'
-data = readDataURL(url)

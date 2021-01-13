@@ -10,16 +10,25 @@ from urllib.request import urlopen
 from sqlalchemy import create_engine
 import json
 import urllib
+import datetime
 
-def dateToQuarter(date):
-    if date.month<4:
-        return pd.to_datetime(str(date.year-1)+'-12-31')
-    elif date.month<7:
-        return pd.to_datetime(str(date.year)+'-03-31')
-    elif date.month<10:
-        return pd.to_datetime(str(date.year)+'-06-30')
-    else:
-        return pd.to_datetime(str(date.year)+'-09-30')
+def dateToQuarter(input_date):
+    input_date = pd.to_datetime(input_date)
+    aux = pd.DataFrame({'Q' : [str(input_date.year-1)+'-12-31',
+                               str(input_date.year)+'-03-31',
+                               str(input_date.year)+'-06-30',
+                               str(input_date.year)+'-09-30',
+                               str(input_date.year)+'-12-31'],
+                        'Diff' : [abs(input_date-pd.to_datetime(str(input_date.year-1)+'-12-31')),
+                               abs(input_date-pd.to_datetime(str(input_date.year)+'-03-31')),
+                               abs(input_date-pd.to_datetime(str(input_date.year)+'-06-30')),
+                               abs(input_date-pd.to_datetime(str(input_date.year)+'-09-30')),
+                               abs(input_date-pd.to_datetime(str(input_date.year)+'-12-31'))]})
+    quarter = aux.Q[(aux.Diff == aux.Diff.min())&(aux.Diff < datetime.timedelta(days = 10))]
+    try:
+        return quarter.iloc[0]
+    except:
+        return np.nan
     
 def readDataURL(url):
     """Takes a url (str). Returns a dataframe """
@@ -51,7 +60,4 @@ def getTickerList():
     sectors = list(sectors[sectors >= 100].index)
     symbols = symbols[symbols.sector.isin(sectors)]
     return list(symbols.symbol)
-
-
-
 
